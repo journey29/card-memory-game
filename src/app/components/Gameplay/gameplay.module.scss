@@ -1,0 +1,23 @@
+.gameplay{
+    margin-bottom: 80px;
+}
+
+.content{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 25px;
+}
+
+.content h2{
+    font-size: 32px;
+}
+
+.content ul{
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   text-align: center;
+   gap: 20px;
+}
+
