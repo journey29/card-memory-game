@@ -51,22 +51,6 @@
   font-weight: 500;
 }
 
-.cards_quantity {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-
-  @media(max-width: 320px){
-    flex-direction: column;
-    gap: 20px;
-  }
-}
-
-.cards_quantity button {
-  padding: 10px 20px;
-  width: 60px;
-  font-size: 20px;
-}
 
 .back{
   padding: 10px 20px;

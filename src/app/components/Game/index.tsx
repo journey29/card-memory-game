@@ -5,13 +5,37 @@ import styles from './game.module.scss'
 import { ICard } from '../../types'
 import { data } from '../../cards'
 import Link from 'next/link'
+import Popup from '../Popup'
+import QuantutySelect from '../QuantitySelect'
 
 export default function Game() {
     const [cards, setCards] = useState<ICard[]>([]);
-    const [turn, setTurn] = useState<number>(0);
+    const [turns, setTurns] = useState<number>(0);
     const [choiceOne, setChoiceOne] = useState<ICard | null>(null);
     const [choiceTwo, setChoiceTwo] = useState<ICard | null>(null);
-    const [disabled, setDisabled] = useState<boolean>(false)
+    const [disabled, setDisabled] = useState<boolean>(false);
+    const [allMatched, setAllMatched] = useState<boolean>(false);
+    const [seconds, setSeconds] = useState(0);
+    const [isActive, setIsActive] = useState(false);
+    
+    useEffect(() => {
+        let interval: NodeJS.Timeout | null = null;
+        let isIntervalActive = false;
+    
+        if (isActive && !allMatched) {
+            interval = setInterval(() => {
+                setSeconds((prevSeconds) => prevSeconds + 1);
+            }, 1000);
+            isIntervalActive = true;
+        }
+    
+        return () => {
+            if (interval !== null && isIntervalActive) {
+                clearInterval(interval);
+            }
+        };
+    }, [isActive, allMatched]);
+
 
     const shuffleCards = (limit: number) => {
         const limitedCards = data.slice(0, limit);
@@ -23,44 +47,64 @@ export default function Game() {
         setCards(shuffledCards);
         setChoiceOne(null);
         setChoiceTwo(null);
-        setTurn(0)
+        setTurns(0);
+        setAllMatched(false);
     }
 
     const handleChoice = (card: ICard) => {
-        choiceOne ? setChoiceTwo(card) : setChoiceOne(card)
+        setIsActive(true);
+        choiceOne ? setChoiceTwo(card) : setChoiceOne(card);
     };
 
     useEffect(() => {
         shuffleCards(4)
     }, [])
 
-
     const resetTurn = () => {
         setChoiceOne(null);
         setChoiceTwo(null);
-        setTurn(prevTurn => prevTurn + 1)
+        setTurns(prevTurn => prevTurn + 1)
         setDisabled(false)
     }
 
+    const handleReset = (isCloseBtn: boolean) => {
+        if (isCloseBtn) {
+            setIsActive(false)
+            setAllMatched(false)
+        } else {
+            setSeconds(0);
+            shuffleCards(cards.length / 2)
+            setIsActive(false);
+            setCards(prevCards => prevCards.map(card => ({ ...card, matched: false })))
+        }
+    };
+
     useEffect(() => {
         if (choiceOne && choiceTwo) {
-            setDisabled(true)
+            setDisabled(true);
             if (choiceOne.value === choiceTwo.value) {
                 setCards(prevCards => {
-                    return prevCards.map(card => {
+                    const updatedCards = prevCards.map(card => {
                         if (card.value === choiceOne.value) {
-                            return { ...card, matched: true }
+                            return { ...card, matched: true };
                         } else {
-                            return card
+                            return card;
                         }
-                    })
-                })
-                resetTurn()
+                    });
+
+                    if (updatedCards.every(card => card.matched === true)) {
+                        setAllMatched(true)
+                    }
+
+                    return updatedCards;
+                });
+
+                resetTurn();
             } else {
-                setTimeout(() => resetTurn(), 1000)
+                setTimeout(() => resetTurn(), 1000);
             }
         }
-    }, [choiceOne, choiceTwo])
+    }, [choiceOne, choiceTwo]);
 
     return (
         <main className={styles.main}>
@@ -68,13 +112,8 @@ export default function Game() {
                 <div>
                     <Link className={styles.back} href="/">Back</Link>
                     <div className={styles.info}>
-                        <div className={styles.turns}>Turns: {turn}</div>
-                        <div className={styles.cards_quantity}>
-                            <button onClick={() => shuffleCards(4)}>8</button>
-                            <button onClick={() => shuffleCards(6)}>12</button>
-                            <button onClick={() => shuffleCards(8)}>16</button>
-                            <button onClick={() => shuffleCards(10)}>20</button>
-                        </div>
+                        <div className={styles.turns}>Turns: {turns}</div>
+                        <QuantutySelect shuffleCards={shuffleCards}/>
                     </div>
                     <div className={styles.cards}>
                         {cards.map(card => (
@@ -87,6 +126,7 @@ export default function Game() {
                             />
                         ))}
                     </div>
+                    <Popup isActive={allMatched} time={seconds} turns={turns} resetGame={handleReset} />
                 </div>
             </div>
         </main>
