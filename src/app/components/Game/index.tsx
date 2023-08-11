@@ -42,7 +42,7 @@ export default function Game() {
 
         const shuffledCards = [...limitedCards, ...limitedCards]
             .sort(() => Math.random() - 0.5)
-            .map(card => ({ ...card, id: Math.random() }));
+            .map(card => ({ ...card, id: Math.random(), matched:false }));
 
         setCards(shuffledCards);
         setChoiceOne(null);
@@ -69,13 +69,13 @@ export default function Game() {
 
     const handleReset = (isCloseBtn: boolean) => {
         if (isCloseBtn) {
+            setSeconds(0);
             setIsActive(false)
             setAllMatched(false)
         } else {
             setSeconds(0);
             shuffleCards(cards.length / 2)
             setIsActive(false);
-            setCards(prevCards => prevCards.map(card => ({ ...card, matched: false })))
         }
     };
 
